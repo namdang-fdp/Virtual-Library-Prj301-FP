@@ -1,0 +1,37 @@
+services:
+  bookstore-api-admin:
+    image: ${REGISTRY}/bookstore-api-admin:lastest
+    profiles:
+      - build
+      - api
+    build:
+      context: admin-api
+      dockerfile: Dockerfile
+  bookstore-api-customer:
+    image: ${REGISTRY}/bookstore-api:lastest
+    profiles:
+      - build
+      - api
+    build:
+      context: user-api
+      dockerfile: Dockerfile
+  bookstore-user-ui:
+    image: ${REGISTRY}/bookstore-ui:lastest
+    profiles:
+      - build
+      - ui
+    build:
+      context: user-ui
+      dockerfile: Dockerfile
+      args:
+        ADMIN_API_URL: ${USER_API_URL}
+  bookstore-admin-ui:
+    image: ${REGISTRY}/bookstore-admin-ui:lastest
+    profiles:
+      - build
+      - ui
+    build:
+      context: admin-ui
+      dockerfile: Dockerfile
+      args:
+        ADMIN_API_URL: ${ADMIN_API_URL}

@@ -1,0 +1,54 @@
+spring:
+  output:
+    ansi:
+      enabled: ALWAYS
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:prj301-assignment}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:123456}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+server:
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin}
+  servlet:
+    context-path: /api/v1
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+  error:
+    include-message: always
+
+jws:
+  expiration-time: ${JWT_EXPIRATION_TIME:604800000}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    filter: true
+    path: /swagger-ui
+
+logging:
+  level:
+    org:
+      springframework:
+        security: TRACE
+      hibernate:
+        type: trace
+        orm:
+          jdbc:
+            bind: trace

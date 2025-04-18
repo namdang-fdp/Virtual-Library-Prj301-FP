@@ -1,0 +1,125 @@
+version: "3.9"
+
+services:
+  bookstore-api-admin:
+    image: bookstore-api-admin:latest
+    restart: unless-stopped
+    ports:
+      - 8081:8080
+    build:
+      context: admin-api
+      dockerfile: Dockerfile
+    profiles:
+      - api
+      - prod
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      JWT_EXPIRATION_TIME: 604800000
+      SPRING_PROFILES_ACTIVE: prod
+
+    networks:
+      - bookstore-network
+
+  bookstore-api-customer:
+    image: ${REGISTRY}/bookstore-api:latest
+    restart: unless-stopped
+    ports:
+      - 8082:8080
+    build:
+      context: user-api
+      dockerfile: Dockerfile
+    profiles:
+      - api
+      - prod
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      JWT_EXPIRATION_TIME: 604800000
+      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      - bookstore-network
+
+  bookstore-user-ui:
+    image: bookstore-ui:latest
+    ports:
+      - 8083:80
+    build:
+      context: user-ui
+      dockerfile: Dockerfile
+      args:
+        API_URL: http://localhost:8082
+    profiles:
+      - ui
+      - prod
+    depends_on:
+      - bookstore-api-customer
+    networks:
+      - bookstore-network
+
+  bookstore-admin-ui:
+    container_name: bookstore-admin-ui
+    restart: unless-stopped
+    image: bookstore-admin-ui:latest
+    ports:
+      - 8084:80
+    build:
+      context: admin-ui
+      dockerfile: Dockerfile
+      args:
+        API_URL: http://localhost:8081
+    profiles:
+      - ui
+      - prod
+    depends_on:
+      - bookstore-api-admin
+    networks:
+      - bookstore-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bookstore-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - bookstore-postgres-data:/var/lib/postgresql/data
+    networks:
+      - bookstore-network
+    profiles:
+      - prod
+      - db
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: bookstore-cloudbeaver
+    restart: unless-stopped
+    environment:
+      CB_SERVER_NAME: "Bookstore CloudBeaver"
+      CB_ADMIN_NAME: "admin"
+      CB_ADMIN_PASSWORD: "admin"
+    networks:
+      - bookstore-network
+    profiles:
+      - db
+      - prod
+
+networks:
+  bookstore-network:
+    name: bookstore_network
+    driver: bridge
+volumes:
+  bookstore-postgres-data:
+    name: bookstore_postgres_data

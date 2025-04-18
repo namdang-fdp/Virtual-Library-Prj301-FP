@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JpaBuddyIdeaProjectConfig">
+    <option name="defaultUnitInitialized" value="true" />
+    <option name="renamerInitialized" value="true" />
+  </component>
+  <component name="PersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit moduleName="prj301_final" name="Default">
+        <packages>
+          <package value="com.prj301.prj301_final" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="prj301" name="Default">
+        <packages>
+          <package value="com.prj301.prj301" />
+        </packages>
+      </persistence-unit>
+    </persistence-units>
+  </component>
+</project>

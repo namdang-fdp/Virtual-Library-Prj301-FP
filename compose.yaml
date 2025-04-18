@@ -1,0 +1,143 @@
+version: "3.9"
+
+services:
+  vba-api-admin:
+    container_name: vba-api-admin
+    image: ${REGISTRY}/vba-api-admin:latest
+    restart: unless-stopped
+    profiles:
+      - api
+      - prod
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      JWT_EXPIRATION_TIME: 604800000
+      SPRING_PROFILES_ACTIVE: prod
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.admin-api.rule=Host(`admin-api.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.admin-api.entrypoints=web"
+      - "traefik.http.services.admin-api.loadbalancer.server.port=8080"
+      - "traefik.constraint=proxy-public"
+      - "traefik.docker.network=vba_network"
+
+    networks:
+      - vba-network
+
+  vba-api-customer:
+    container_name: vba-api-customer
+    image: ${REGISTRY}/vba-api:latest
+    restart: unless-stopped
+    profiles:
+      - api
+      - prod
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      JWT_EXPIRATION_TIME: 604800000
+      SPRING_PROFILES_ACTIVE: prod
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+      - "traefik.constraint=proxy-public"
+      - "traefik.docker.network=vba_network"
+    networks:
+      - vba-network
+
+  vba-user-ui:
+    container_name: vba-user-ui
+    image: ${REGISTRY}/vba-ui:latest
+    profiles:
+      - ui
+      - prod
+    depends_on:
+      - vba-api-customer
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client-ui.rule=Host(`${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.client-ui.entrypoints=web"
+      - "traefik.http.services.client-ui.loadbalancer.server.port=5050"
+      - "traefik.constraint=proxy-public"
+      - "traefik.docker.network=vba_network"
+    networks:
+      - vba-network
+
+  vba-admin-ui:
+    container_name: vba-admin-ui
+    restart: unless-stopped
+    image: ${REGISTRY}/vba-admin-ui:latest
+    profiles:
+      - ui
+      - prod
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.admin-ui.rule=Host(`admin.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.admin-ui.entrypoints=web"
+      - "traefik.http.services.admin-ui.loadbalancer.server.port=5050"
+      - "traefik.constraint=proxy-public"
+      - "traefik.docker.network=vba_network"
+    depends_on:
+      - vba-api-admin
+    networks:
+      - vba-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: vba-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - vba-postgres-data:/var/lib/postgresql/data
+    networks:
+      - vba-network
+    profiles:
+      - prod
+      - db
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: vba-cloudbeaver
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cloudbeaver.rule=Host(`dbeaver.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.cloudbeaver.entrypoints=web"
+      - "traefik.http.services.cloudbeaver.loadbalancer.server.port=8978"
+      - "traefik.constraint=proxy-public"
+      - "traefik.docker.network=vba_network"
+    environment:
+      CB_SERVER_NAME: "Virtual Book Archive CloudBeaver"
+      CB_ADMIN_NAME: "admin"
+      CB_ADMIN_PASSWORD: "admin"
+    networks:
+      - vba-network
+    profiles:
+      - db
+      - prod
+
+networks:
+  vba-network:
+    name: vba_network
+    driver: bridge
+
+volumes:
+  vba-postgres-data:
+    name: vba_postgres_data

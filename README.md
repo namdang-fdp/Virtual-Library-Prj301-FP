@@ -1,4 +1,10 @@
 # Virtual Book Archive
+## How to run the UI
+**Download** : https://bun.sh/docs/installation
+
+Use VSCode open the UI folder (Admin UI or UserUi)
+
+Type: **bun i** and **bun run dev**
 
 ## Members
 

@@ -9,7 +9,9 @@ Type: **bun i** and **bun run dev**
 ## Tech Stack
 
 BE: Spring Boot, Hibernate, JWT, JPA, PostgreSQL
+
 FE: ReactJS + Vite, TypeScript
+
 Cloud: AWSS3 service
 ## Members
 
